@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet Draw</title>
+	<link rel="stylesheet" type="text/css" href="lib/leaflet.css">
+	<link rel="stylesheet" type="text/css" href="lib/leaflet.draw.css">
+</head>
+<body>
+	<div id="map", style="width: 600px; height: 400px"></div>
+
+	<script type="text/javascript" src="lib/leaflet.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+
+	<script src="draw.js"></script>
+	<script>
+
+		var polygon_coords=[];
+
+		var map = L.map('map').setView([13.0827, 80.2707], 13);
+		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+		}).addTo(map);
+
+		var drawnItems = new L.FeatureGroup();
+		map.addLayer(drawnItems);
+		var drawControl = new L.Control.Draw({
+			// position: 'topright',
+					draw: {
+				polygon: {
+					shapeOptions: {
+					color: 'purple'
+					},
+					allowIntersection: false,
+					drawError: {
+					color: 'orange',
+					timeout: 1000
+					},
+				},
+				polyline: {
+					shapeOptions: {
+					color: 'red'
+					},
+				},
+				rect: {
+					shapeOptions: {
+					color: 'green'
+					},
+				},
+				circle: {
+					shapeOptions: {
+					color: 'steelblue'
+					},
+				},
+				},
+				edit: {
+					featureGroup: drawnItems
+				}
+			});
+
+		map.addControl(drawControl);
+
+		map.on('draw:created', function (e) {
+
+			console.log("hey");
+			var type = e.layerType,
+			layer = e.layer;
+			drawnItems.addLayer(layer);
+
+			var coordinates
+
+			if(type=='marker'){
+				coordinates = layer.getLatLng(); // Get the coordinates of the drawn polygon
+				console.log(coordinates);
+				if(polygon_coords.length>0){
+					document.getElementById("Point").innerHTML=coordinates.lat+" "+coordinates.lng;
+					var res = check([coordinates.lat,coordinates.lng],polygon_coords);
+					if(res){
+						document.getElementById("result").innerHTML="Point inside subzone"
+					}
+					else{
+						document.getElementById("result").innerHTML="Point not inside subzone"
+					}
+				}
+			}
+			else{
+				coordinates = layer.getLatLngs();
+				console.log(coordinates)
+				for(let i=0;i<coordinates.length;i+=2){
+					polygon_coords.push([coordinates[i].lat,coordinates[i].lng]);
+				}
+				console.log(polygon_coords);
+			}
+		});
+
+	</script>
+	<h3>POINT</h3>
+	<p id="Point"></p>
+	<h3>RESULT</h3>
+	<p id="result"></p>
+</body>
+</html>
